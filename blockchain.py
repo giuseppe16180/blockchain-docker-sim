@@ -1,6 +1,6 @@
 import hashlib
 import json
-from time import time
+from time import time, sleep
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -185,7 +185,7 @@ class Blockchain:
         :return: <bool> True if correct, False if not.
 
         """
-
+        #sleep(0.0001)
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"

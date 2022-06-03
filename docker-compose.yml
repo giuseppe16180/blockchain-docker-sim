@@ -2,30 +2,43 @@ version: "3"
 
 services:
   node1:
-    build: /
+    build: ./
     hostname: node1
+    container_name: node1
     tty: true
     networks:
       - default_network
 
   node2:
-    build: /
+    build: ./
     hostname: node2
+    container_name: node2
     tty: true
     networks:
       - default_network
 
   node3:
-    build: /
+    build: ./
     hostname: node3
+    container_name: node3
     tty: true
     networks:
       - default_network
 
 
   node4:
-    build: /
+    build: ./
     hostname: node4
+    container_name: node4
+    tty: true
+    networks:
+      - default_network
+
+
+  conductor:
+    build: ./conductor
+    hostname: conductor
+    container_name: conductor
     tty: true
     networks:
       - default_network
