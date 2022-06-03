@@ -1,3 +1,11 @@
+# Introduciton
+
+My attempt at a proof-of-stake toy blockchain made by employing some Docker containers to simulate a network of nodes.
+
+
+
+*original readme*
+
 # Are you looking for the source code for my book?
 
 Please find it here: https://github.com/dvf/blockchain-book
