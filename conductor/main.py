@@ -24,7 +24,7 @@ else:
 # %%
 
 #post on http://localhost:5000/transactions/new
-data = {'sender': 'pippo', 'recipient': 'pluto', 'amount': '10'}
+data = {'sender': 'pippo', 'recipient': 'pluto', 'amount': random_data()}
 response = requests.post(f'{url}/transactions/new', json=data)
 
 if response.status_code == 201:
@@ -41,7 +41,7 @@ response = requests.get(f'{url}/chain')
 
 if response.status_code == 200:
     response_dict = response.json()
-    print(f'{response_dict}')
+    print(f'{json.dumps(response_dict, indent=1)}')
 else:
     print(f'{response.status_code}')
 
