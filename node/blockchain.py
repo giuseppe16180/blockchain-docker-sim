@@ -212,7 +212,7 @@ def mine():
     blockchain.new_transaction(
         sender="0",
         recipient=node_identifier,
-        amount=1,
+        amount=10,
     )
 
     # Forge the new Block by adding it to the chain
@@ -228,6 +228,13 @@ def mine():
     }
     return jsonify(response), 200
 
+@app.route('/identify', methods=['GET'])
+def identify():
+    response = {
+        'message': "Node Identifier",
+        'identifier': node_identifier,
+    }
+    return jsonify(response), 200
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
