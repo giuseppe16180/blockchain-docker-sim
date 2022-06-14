@@ -13,7 +13,6 @@ from uuid import uuid4
 
 import requests
 from hashmoji import hashmoji
-from node.blockchain import new_transaction
 from numpy import byte
 from regex import F
 from sklearn.utils import resample
@@ -21,93 +20,7 @@ from termcolor import colored, cprint
 
 
 
-with open('nodes.txt', 'r') as f:
-    nodes = f.read().splitlines()
 
-members = {str(uuid4()).replace('-', '') for _ in range(5)}
-miners = {}
-
-for node in nodes:
-    response = requests.get(f'http://{node}/identify')
-    if response.status_code == 200:
-        id = response.json()['identifier']
-        members.add(id)
-        miners[id] = f'http://{node}'
-
-print(members, miners)
-
-
-def random_transaction():
-    sender, recipient = random.sample(members, 2)
-    return {
-        'sender': sender,
-        'recipient': recipient,
-        'amount': random.randint(1, 100),
-    }
-
-# %%
-
-
-async def get_chain(miner) -> Optional[dict]:
-    response = requests.get(f'{miner}/chain')
-    if response.status_code == 200:
-        response_dict = response.json()
-        return response_dict
-    else:
-        return None
-
-def do_transaction(data, miner) -> Optional[dict]:
-    response = requests.post(f'{miners[miner]}/transactions/new', json=data)
-    if response.status_code == 201:
-        response_dict = response.json()
-        return response_dict
-    else:
-        return None
-
-
-def do_mine(miner) -> Optional[dict]:
-    response = requests.get(f'{miners[miner]}/mine')
-    if response.status_code == 200:
-        response_dict = response.json()
-        return response_dict
-    else:
-        return None
-
-
-def do_resolve(miner) -> Optional[dict]:
-    response = requests.get(f'{miners[miner]}/resolve')
-    if response.status_code == 200:
-        response_dict = response.json()
-        return response_dict
-    else:
-        return None
-
-def do_register():
-    for miner in miners:
-        others = set(miners.keys()) - {miner}
-        nodes = [miners[other] for other in others]
-        data = {'nodes': nodes}
-        response = requests.post(f'{miners[miner]}/nodes/register', json=data)
-        if response.status_code == 201:
-            response_dict = response.json()
-            print(response_dict)
-        else:
-            print(response.status_code)
-
-def random_miner():
-    return random.choice(list(miners.keys()))
-
-while True:
-    new_transactions = [random_transaction() for _ in range(random.randint(1, 10))]
-    for transaction in new_transactions:
-        do_transaction(transaction, random_miner())
-    for miner in miners.keys():
-        do_mine(miner)
-
-
-# %%
-
-# %%
 
 
 def hash(block):
@@ -152,6 +65,8 @@ def visualize_chain(chain: dict, blocks_to_print: int = 1):
 
         transactions = [visualize_transaction(
             transaction) for transaction in block['transactions']]
+        
+        miner = block['miner']
 
         if i >= len(chain['chain']) - blocks_to_print:
 
@@ -160,6 +75,10 @@ def visualize_chain(chain: dict, blocks_to_print: int = 1):
 
             cprint(f"mined on", 'red', attrs=['bold'], end=' ')
             cprint(f"{timestamp}")
+
+            cprint("by the miner: ", 'red', attrs=['bold'], end=' ')
+            cprint(f"{miner}", 'blue', attrs=['bold'])
+
             cprint(f"with proof", 'red', attrs=['bold'], end=' ')
             cprint(f"{proof}", end=' ')
 
@@ -183,6 +102,120 @@ def visualize_chain(chain: dict, blocks_to_print: int = 1):
 
 
 
+
+
+
+with open('nodes.txt', 'r') as f:
+    nodes = f.read().splitlines()
+
+members = {str(uuid4()).replace('-', '') for _ in range(5)}
+miners = {}
+
+for node in nodes:
+    response = requests.get(f'http://{node}/identify')
+    if response.status_code == 200:
+        id = response.json()['identifier']
+        members.add(id)
+        miners[id] = f'http://{node}'
+
+print(members, miners)
+
+
+def random_transaction():
+    sender, recipient = random.sample(members, 2)
+    return {
+        'sender': sender,
+        'recipient': recipient,
+        'amount': random.randint(1, 100),
+    }
+
+# %%
+
+import sys
+
+def log_error(function, code):
+    cprint(f"\nError! http code {code} as response to {function}\n", 'red', attrs=['bold'], file=sys.stderr)
+
+
+def get_chain(miner) -> Optional[dict]:
+    response = requests.get(f'{miners[miner]}/chain')
+    if response.status_code == 200:
+        response_dict = response.json()
+        return response_dict
+    else:
+        log_error('chain', response.status_code)
+        return None
+
+def do_transaction(data, miner) -> Optional[dict]:
+    response = requests.post(f'{miners[miner]}/transactions/new', json=data)
+    if response.status_code == 201:
+        response_dict = response.json()
+        return response_dict
+    else:
+        log_error('transaction', response.status_code)
+        return None
+
+def do_mine(miner) -> Optional[dict]:
+    response = requests.get(f'{miners[miner]}/mine')
+    if response.status_code == 200:
+        response_dict = response.json()
+        return response_dict
+    else:
+        log_error('mine', response.status_code)
+        return None
+
+
+def do_resolve(miner) -> Optional[dict]:
+    response = requests.get(f'{miners[miner]}/nodes/resolve')
+    if response.status_code == 200:
+        response_dict = response.json()
+        print(response_dict['message'])
+        return response_dict
+    else:
+        log_error('resolve', response.status_code)
+        return None
+
+def do_register():
+    for miner in miners:
+        others = set(miners.keys()) - {miner}
+        nodes = [miners[other] for other in others]
+        data = {'nodes': nodes}
+        response = requests.post(f'{miners[miner]}/nodes/register', json=data)
+        if response.status_code == 201:
+            response_dict = response.json()
+        else:
+            log_error('register', response.status_code)
+            return None
+
+def random_miner():
+    return random.choice(list(miners.keys()))
+
+do_register()
+
+while True:
+    new_transactions = [random_transaction() for _ in range(random.randint(1, 10))]
+    for transaction in new_transactions:
+        do_transaction(transaction, random_miner())
+   
+    do_mine(random_miner())
+    
+    for miner in miners.keys():
+        do_resolve(miner)
+    chain = get_chain(random_miner())
+    if chain: visualize_chain(chain=chain, blocks_to_print=1)
+    time.sleep(2)
+    #visualize_chain(get_chain(random_miner()), 1)
+
+    
+
+
+# %%
+
+res = requests.get('http://localhost:5002/mine')
+if res.status_code == 200:
+    print(res.json())
+else:
+    print(res.status_code)
 
 
 

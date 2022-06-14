@@ -1,6 +1,7 @@
 import hashlib
 import json
-from time import time
+import random
+import time
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -9,10 +10,11 @@ from flask import Flask, jsonify, request
 
 
 class Blockchain:
-    def __init__(self):
+    def __init__(self, identifier):
         self.current_transactions = []
         self.chain = []
         self.nodes = set()
+        self.identifier = identifier
 
         # Create the genesis block
         self.new_block(previous_hash='0' * 64, proof=100)
@@ -109,10 +111,11 @@ class Blockchain:
 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'timestamp': time.time(),
             'transactions': self.current_transactions,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
+            'miner': self.identifier,
         }
 
         # Reset the current list of transactions
@@ -170,7 +173,8 @@ class Blockchain:
 
         proof = 0
         while self.valid_proof(last_proof, proof, last_hash) is False:
-            proof += 1
+            proof += random.randint(1, 100)
+            #time.sleep(0.000001)
 
         return proof
 
@@ -198,7 +202,7 @@ app = Flask(__name__)
 node_identifier = str(uuid4()).replace('-', '')
 
 # Instantiate the Blockchain
-blockchain = Blockchain()
+blockchain = Blockchain(identifier=node_identifier)
 
 
 @app.route('/mine', methods=['GET'])
@@ -225,6 +229,7 @@ def mine():
         'transactions': block['transactions'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
+        'miner': block['miner'],
     }
     return jsonify(response), 200
 
@@ -285,7 +290,7 @@ def full_chain():
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
-    valuesl = request.get_json()
+    values = request.get_json()
 
     nodes = values.get('nodes')
     if nodes is None:
