@@ -1,6 +1,6 @@
 # Introduciton
 
-My attempt at a proof-of-stake toy blockchain made by employing some Docker containers to simulate a network of nodes.
+My attempt at a toy blockchain made by employing some Docker containers to simulate a network of nodes.
 
 https://mycoralhealth.medium.com/code-your-own-proof-of-stake-blockchain-in-go-610cd99aa658
 
