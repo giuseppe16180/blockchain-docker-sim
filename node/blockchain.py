@@ -15,7 +15,7 @@ class Blockchain:
         self.nodes = set()
 
         # Create the genesis block
-        self.new_block(previous_hash='1', proof=100)
+        self.new_block(previous_hash='0' * 64, proof=100)
 
     def register_node(self, address):
         """
@@ -246,23 +246,23 @@ def new_transaction():
 
 
 
-@app.route('/transaction/broadcast', methods=['POST']) # TODO: verificare che il nodo esista
-def broadcast_transaction():
-    values = request.get_json()
+# @app.route('/transaction/broadcast', methods=['POST']) # TODO: verificare che il nodo esista
+# def broadcast_transaction():
+#     values = request.get_json()
 
-    # Check that the required fields are in the POST'ed data
-    required = ['sender', 'recipient', 'amount']
-    if not all(k in values for k in required):
-        return 'Missing values', 400
+#     # Check that the required fields are in the POST'ed data
+#     required = ['sender', 'recipient', 'amount']
+#     if not all(k in values for k in required):
+#         return 'Missing values', 400
 
-    # Create a new Transaction
-    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+#     # Create a new Transaction
+#     index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
 
-    for node in blockchain.nodes:
-        response = requests.post(f'http://{node}/transactions/new', json=values)
+#     for node in blockchain.nodes:
+#         response = requests.post(f'http://{node}/transactions/new', json=values)
     
-    response = {'message': f'Transaction will be added to Block {index}'}
-    return jsonify(response), 201
+#     response = {'message': f'Transaction will be added to Block {index}'}
+#     return jsonify(response), 201
 
 
 
@@ -278,7 +278,7 @@ def full_chain():
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
-    values = request.get_json()
+    valuesl = request.get_json()
 
     nodes = values.get('nodes')
     if nodes is None:
