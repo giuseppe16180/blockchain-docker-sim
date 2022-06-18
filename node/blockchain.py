@@ -308,17 +308,24 @@ def register_nodes():
 
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
+
+    old_chain_len = len(blockchain.chain)
+
     replaced = blockchain.resolve_conflicts()
 
     if replaced:
         response = {
             'message': 'Our chain was replaced',
-            'new_chain': blockchain.chain
+            'status': 'replaced',
+            'new_chain': blockchain.chain,
+            'length_diff': str(len(blockchain.chain) - old_chain_len)
         }
     else:
         response = {
             'message': 'Our chain is authoritative',
-            'chain': blockchain.chain
+            'status': 'authoritative',
+            'chain': blockchain.chain,
+            'length_diff': str(0)
         }
 
     return jsonify(response), 200

@@ -1,27 +1,36 @@
 # %%
 
-import asyncio
 import hashlib
 import json
 import random
 import time
-from operator import le
-from turtle import end_fill
-from typing import Optional
+import requests
+import os
+
+from typing import Optional, List, Dict, Set
 from urllib import response
 from uuid import uuid4
-
-import requests
-from hashmoji import hashmoji
-from numpy import byte
-from regex import F
-from sklearn.utils import resample
 from termcolor import colored, cprint
 
+######### TEXT STYLING #########
+
+def r(text: str) -> str:
+    return colored(text, 'red', attrs=['bold'])
 
 
+def g(text: str) -> str:
+    return colored(text, 'green', attrs=['bold'])
 
 
+def b(text: str) -> str:
+    return colored(text, 'blue', attrs=['bold'])
+
+
+def h(text: str) -> str:
+    return colored(text, 'grey', on_color='on_red', attrs=['bold'])
+
+
+######### VERIFICATION #########
 
 def hash(block):
     block_string = json.dumps(block, sort_keys=True).encode()
@@ -33,21 +42,19 @@ def proof_verification(last_proof, proof, last_hash):
     guess_hash = hashlib.sha256(guess).hexdigest()
     return guess_hash
 
+######### VISUALIZATION #########
 
 def visualize_transaction(transaction: dict):
-    if transaction['sender'] == '0':
-        amount = transaction['amount']
-        recipient = transaction['recipient']
-        amount = colored(amount, 'red', attrs=['bold'])
-        recipient = colored(recipient, 'green', attrs=['bold'])
-        return f'{recipient} got {amount} coins as a reward'
-    amount = transaction['amount']
     sender = transaction['sender']
-    recipient = transaction['recipient']
-    amount = colored(f"{amount}", 'red', attrs=['bold'])
-    sender = colored(f"{sender}", 'blue', attrs=['bold'])
-    recipient = colored(f"{recipient}", 'green', attrs=['bold'])
+    amount = r(transaction['amount'])
+    recipient = g(transaction['recipient'])
+    
+    if sender == '0':
+        return f'{recipient} got {amount} coins as a reward'
+    
+    sender = b(sender)
     return f"{sender} sent {amount} coins to {recipient}"
+
 
 
 def visualize_chain(chain: dict, blocks_to_print: int = 1):
@@ -57,52 +64,31 @@ def visualize_chain(chain: dict, blocks_to_print: int = 1):
     for i, block in enumerate(chain['chain']):
 
         index = block['index']
-        timestamp = time.strftime(
-            '%d-%m-%Y at %H:%M:%S', time.localtime(block['timestamp']))
+
+        timestamp = time.strftime('%d-%m-%Y at %H:%M:%S', time.localtime(block['timestamp']))
+
         proof = block['proof']
-        # hex_to_emoji(block['previous_hash'])
+
         previous_hash = block['previous_hash']
 
-        transactions = [visualize_transaction(
-            transaction) for transaction in block['transactions']]
-        
+        transactions = [visualize_transaction(t) for t in block['transactions']]
+
         miner = block['miner']
 
         if i >= len(chain['chain']) - blocks_to_print:
 
-            cprint(f"{' ' * 10}Block number {index}{' ' * 10}",
-                   'grey', 'on_red', attrs=['bold'])
-
-            cprint(f"mined on", 'red', attrs=['bold'], end=' ')
-            cprint(f"{timestamp}")
-
-            cprint("by the miner: ", 'red', attrs=['bold'], end=' ')
-            cprint(f"{miner}", 'blue', attrs=['bold'])
-
-            cprint(f"with proof", 'red', attrs=['bold'], end=' ')
-            cprint(f"{proof}", end=' ')
-
-            cprint(f"to get", 'red', attrs=['bold'], end=' ')
-            cprint(f"{proof_verification(last_proof, proof, previous_hash)}")
-
-            cprint(f"the hash of the previous block is",
-                   'red', attrs=['bold'], end=' ')
-            cprint(f"{previous_hash}")
-            cprint(f"the included transactions are: ",
-                   'red', attrs=['bold'], end='\n')
+            print(h(f"Block number {index} {' ' * 80}"), end='\n\n')
+            print(r("mined on"), timestamp, r("by the miner"), b(miner), end='\n\n')
+            print(r("with nonce"), proof, r("to get"), proof_verification(last_proof, proof, previous_hash), end='\n\n')
+            print(r("the hash of the previous block is"), previous_hash, end='\n\n')
+            print(r("the included transactions are:"), end='\n')
             for i, transaction in enumerate(transactions):
                 print(f"- {transaction}")
-            cprint(f"the hash of this block is:",
-                   'red', attrs=['bold'], end=' ')
-            cprint(hash(block))
-
-            print()
+            print('')
+            print(r("the hash of this block is:"), hash(block), end='\n\n')
+            print(h(' ' * 80))
 
         last_proof = proof
-
-
-
-
 
 
 with open('nodes.txt', 'r') as f:
@@ -131,10 +117,9 @@ def random_transaction():
 
 # %%
 
-import sys
 
-def log_error(function, code):
-    cprint(f"\nError! http code {code} as response to {function}\n", 'red', attrs=['bold'], file=sys.stderr)
+def log_error(message, code):
+    cprint(f'{message} - http return code {code}', 'red')
 
 
 def get_chain(miner) -> Optional[dict]:
@@ -143,8 +128,9 @@ def get_chain(miner) -> Optional[dict]:
         response_dict = response.json()
         return response_dict
     else:
-        log_error('chain', response.status_code)
+        log_error(f'Error retrieving chain from {miner}', response.status_code)
         return None
+
 
 def do_transaction(data, miner) -> Optional[dict]:
     response = requests.post(f'{miners[miner]}/transactions/new', json=data)
@@ -152,8 +138,9 @@ def do_transaction(data, miner) -> Optional[dict]:
         response_dict = response.json()
         return response_dict
     else:
-        log_error('transaction', response.status_code)
+        log_error(f'Error submitting transaction to {miner}', response.status_code)
         return None
+
 
 def do_mine(miner) -> Optional[dict]:
     response = requests.get(f'{miners[miner]}/mine')
@@ -161,7 +148,7 @@ def do_mine(miner) -> Optional[dict]:
         response_dict = response.json()
         return response_dict
     else:
-        log_error('mine', response.status_code)
+        log_error(f'Error while trying to mine on {miner}', response.status_code)
         return None
 
 
@@ -169,67 +156,56 @@ def do_resolve(miner) -> Optional[dict]:
     response = requests.get(f'{miners[miner]}/nodes/resolve')
     if response.status_code == 200:
         response_dict = response.json()
-        print(response_dict['message'])
         return response_dict
     else:
         log_error('resolve', response.status_code)
         return None
 
-def do_register():
-    for miner in miners:
-        others = set(miners.keys()) - {miner}
-        nodes = [miners[other] for other in others]
-        data = {'nodes': nodes}
-        response = requests.post(f'{miners[miner]}/nodes/register', json=data)
-        if response.status_code == 201:
-            response_dict = response.json()
-        else:
-            log_error('register', response.status_code)
-            return None
+def visualize_resolve(miner: str, response_dict: Optional[dict]):
+    if response_dict:
+        if response_dict['status'] == 'authoritative':
+            print(f"The chain of {miner} is authoritative")
+        elif response_dict['status'] == 'replaced':
+            print(f"The chain of {miner} has been replaced - {response_dict['length_diff']} blocks have been added")
+
+
+def do_register(miner: str, others: List[str]):
+    data = {'nodes': others}
+    response = requests.post(f'{miners[miner]}/nodes/register', json=data)
+    if response.status_code == 201:
+        response_dict = response.json()
+        return response_dict
+    else:
+        log_error(f'Error during the registration of {miner}', response.status_code)
+        return None
+
 
 def random_miner():
     return random.choice(list(miners.keys()))
 
-do_register()
+# MAIN
+
+for miner in miners:
+    others = set(miners.keys()) - {miner}
+    nodes = [miners[other] for other in others]
+    data = {'nodes': nodes}
+    do_register(miner, nodes)
 
 while True:
-    new_transactions = [random_transaction() for _ in range(random.randint(1, 10))]
-    for transaction in new_transactions:
+    
+    for transaction in [random_transaction() for _ in range(random.randint(1, 10))]: 
         do_transaction(transaction, random_miner())
-   
-    do_mine(random_miner())
-    
-    for miner in miners.keys():
-        do_resolve(miner)
-    chain = get_chain(random_miner())
-    if chain: visualize_chain(chain=chain, blocks_to_print=1)
+
+    to_resolve = random_miner()
+    if resp := do_resolve(to_resolve):  # TODO: add more miners
+        visualize_resolve(to_resolve, resp)
+
+    to_mine = random_miner()
+    if resp := do_mine(to_mine):
+        pass
+
+    if chain := get_chain(random_miner()):
+        visualize_chain(chain=chain, blocks_to_print=1)
+
     time.sleep(2)
-    #visualize_chain(get_chain(random_miner()), 1)
 
-    
-
-
-# %%
-
-res = requests.get('http://localhost:5002/mine')
-if res.status_code == 200:
-    print(res.json())
-else:
-    print(res.status_code)
-
-
-
-
-
-
-
-    # do mine for all the nodes
-
-
-
-
-
-
-
-#def hex_to_emoji(hash):
-#    return ' '.join([c for c in hashmoji(hash) if c != ' '])
