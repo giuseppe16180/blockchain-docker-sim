@@ -160,11 +160,11 @@ class BlockchainSimulator():
     def visualize_resolve(miner: str, response_dict: Optional[dict]):
         if response_dict:
             if response_dict['status'] == 'authoritative':
-                print(f"{g(miner)} says his chain is authoritative")
+                print(f"{g(miner)} says its chain is authoritative")
             elif response_dict['status'] == 'updated':
-                print(f"{g(miner)} has updated his chain - {response_dict['length_diff']} blocks have been added")
+                print(f"{g(miner)} has updated its chain - {response_dict['length_diff']} blocks have been added")
             elif response_dict['status'] == 'conflict':
-                print(f"{g(miner)} has replaced his chain - it was {response_dict['length_diff']} blocks ahead")
+                print(f"{g(miner)} has replaced its chain - it was {response_dict['length_diff']} blocks ahead")
 
     @staticmethod
     def format_transaction(transaction: dict):
@@ -210,7 +210,7 @@ class BlockchainSimulator():
         
         for epoch in count(start=1):
 
-            os.system('cls' if os.name == 'nt' else 'clear -x')
+            #os.system('cls' if os.name == 'nt' else 'clear -x')
             
             label = f"Running epoch {epoch}..."
             label = label + ' ' * (os.get_terminal_size().columns - len(label))

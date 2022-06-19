@@ -2,46 +2,43 @@ version: "3"
 
 services:
   node1:
-    build: ./
-    hostname: node1
-    container_name: node1
+    build: miner
     tty: true
     networks:
-      - default_network
+      default_network:
+        aliases:
+          - node1
 
   node2:
-    build: ./
-    hostname: node2
-    container_name: node2
+    build: miner
     tty: true
     networks:
-      - default_network
+      default_network:
+        aliases:
+          - node2
 
   node3:
-    build: ./
-    hostname: node3
-    container_name: node3
+    build: miner
     tty: true
     networks:
-      - default_network
+      default_network:
+        aliases:
+          - node3
 
 
-  node4:
-    build: ./
-    hostname: node4
-    container_name: node4
+  simulator:
+    build: ./simulator
+    hostname: simulator
+    container_name: simulator
     tty: true
     networks:
-      - default_network
-
-
-  conductor:
-    build: ./conductor
-    hostname: conductor
-    container_name: conductor
-    tty: true
-    networks:
-      - default_network
+      default_network:
+        aliases:
+          - simulator
+    depends_on:
+      - node1
+      - node2
+      - node3
 
 networks:
   default_network:
