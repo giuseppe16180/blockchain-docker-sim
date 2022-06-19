@@ -1,79 +1,34 @@
 # Introduciton
 
-My attempt at a toy blockchain made by employing some Docker containers to simulate a network of nodes.
+My attempt to create a toy blockchain using some Docker containers to simulate a network of nodes.
 
-https://mycoralhealth.medium.com/code-your-own-proof-of-stake-blockchain-in-go-610cd99aa658
+I started the development from https://github.com/dvf/blockchain. There you can find all the details about the simple blockchain implementation (i.e., what you find in miner/blockchain.py).
 
-*original readme*
+The dvf work did not include a way to handle the interaction between miners in a way similar to what happens in a real network (He assumes that you have to interact with the network of nodes through several manual http requests). In addition, each node responded with a json object, which I believe is not so easy to read. I presented all the interactions in the simulation quite clearly, I hope this explains what happens.
 
-# Are you looking for the source code for my book?
+However, I made several changes to the original code, which I hope one day to document. The purpose of the changes is to make each miner compatible with the type of operation I wanted in my simulation.
 
-Please find it here: https://github.com/dvf/blockchain-book
+Therefore, I made a simulator in which:
 
-The book is available on Amazon: https://www.amazon.com/Learn-Blockchain-Building-Understanding-Cryptocurrencies/dp/1484251709
+- All miners are informed of the miners available in the network.
+- Some "members" (including miners) perform transactions.
+- The miners do the proof-of-work.
+- The miners run the consensus algorithm to update their chains and resolve possible forks.
 
-# Learn Blockchains by Building One
+To run this simulation, it is necessary to
 
-[![Build Status](https://travis-ci.org/dvf/blockchain.svg?branch=master)](https://travis-ci.org/dvf/blockchain)
+- Install Docker.
+- Go to the project folder.
+- Run `docker-compose build && docker-compose up -d`.
+- Run `docker container logs simulator -f`.
 
-This is the source code for my post on [Building a Blockchain](https://medium.com/p/117428612f46). 
+Now you should see:
 
-## Installation
+I hope that the content is self-explanatory.
 
-1. Make sure [Python 3.6+](https://www.python.org/downloads/) is installed. 
-2. Install [pipenv](https://github.com/kennethreitz/pipenv). 
-
-```
-$ pip install pipenv 
-```
-3. Install requirements  
-```
-$ pipenv install 
-``` 
-
-4. Run the server:
-    * `$ pipenv run python blockchain.py` 
-    * `$ pipenv run python blockchain.py -p 5001`
-    * `$ pipenv run python blockchain.py --port 5002`
-    
-## Docker
-
-Another option for running this blockchain program is to use Docker.  Follow the instructions below to create a local Docker container:
-
-1. Clone this repository
-2. Build the docker container
-
-```
-$ docker build -t blockchain .
-```
-
-3. Run the container
-
-```
-$ docker run --rm -p 80:5000 blockchain
-```
-
-4. To add more instances, vary the public port number before the colon:
-
-```
-$ docker run --rm -p 81:5000 blockchain
-$ docker run --rm -p 82:5000 blockchain
-$ docker run --rm -p 83:5000 blockchain
-```
-
-## Installation (C# Implementation)
-
-1. Install a free copy of Visual Studio IDE (Community Edition):
-https://www.visualstudio.com/vs/
-
-2. Once installed, open the solution file (BlockChain.sln) using the File > Open > Project/Solution menu options within Visual Studio.
-
-3. From within the "Solution Explorer", right click the BlockChain.Console project and select the "Set As Startup Project" option.
-
-4. Click the "Start" button, or hit F5 to run. The program executes in a console window, and is controlled via HTTP with the same commands as the Python version.
+Run `docker compose stop` in order to stop the execution of the simulator.
 
 
-## Contributing
+I'm aware that the project could be interesting as an educational simulator, but I's far from perfect. I don't know if I will be able to improve it. Therefore, if you think that this project has potential, please contribute, it could be the opportunity to develop something to show what a blockchain and a cryptocurrency consist of.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
+I am aware that the project could be interesting as an educational simulator, but it is far from perfect. I don't know if I will be able to improve it. Therefore, if you think this project has potential, please contribute, it could be an opportunity to develop something that shows what a blockchain and cryptocurrency are all about.
