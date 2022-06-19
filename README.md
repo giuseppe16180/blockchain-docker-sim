@@ -1,4 +1,4 @@
-# Introduciton
+# Blockchain Simulator
 
 My attempt to create a toy blockchain using some Docker containers to simulate a network of nodes.
 
