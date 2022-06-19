@@ -49,9 +49,9 @@ class Blockchain:
 
         while current_index < len(chain):
             block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
+            #print(f'{last_block}')
+            #print(f'{block}')
+            #print("\n-----------\n")
             # Check that the hash of the block is correct
             last_block_hash = self.hash(last_block)
             if block['previous_hash'] != last_block_hash:
@@ -174,7 +174,7 @@ class Blockchain:
         proof = 0
         while self.valid_proof(last_proof, proof, last_hash) is False:
             proof += random.randint(1, 100)
-            #time.sleep(0.000001)
+            time.sleep(0.00001)
 
         return proof
 
@@ -309,22 +309,32 @@ def register_nodes():
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
 
+
     old_chain_len = len(blockchain.chain)
+    old_chain_hash = blockchain.hash(blockchain.chain[-1]) # TODO: to correct
 
     replaced = blockchain.resolve_conflicts()
+    was_fork = old_chain_hash != blockchain.hash(blockchain.chain[old_chain_len - 1])
 
-    if replaced:
+    print(f'old hash {old_chain_hash}\nnew hash {blockchain.hash(blockchain.chain[old_chain_len - 1])}')
+    print(f'old len {old_chain_len}\nnew len {len(blockchain.chain)}')
+
+    if replaced and was_fork:
         response = {
-            'message': 'Our chain was replaced',
-            'status': 'replaced',
-            'new_chain': blockchain.chain,
+            'message': 'Our chain was a fork',
+            'status': 'conflict',
+            'length_diff': str(len(blockchain.chain) - old_chain_len)
+        }
+    elif replaced:
+        response = {
+            'message': 'Our chain has been updated',
+            'status': 'updated',
             'length_diff': str(len(blockchain.chain) - old_chain_len)
         }
     else:
         response = {
             'message': 'Our chain is authoritative',
             'status': 'authoritative',
-            'chain': blockchain.chain,
             'length_diff': str(0)
         }
 
