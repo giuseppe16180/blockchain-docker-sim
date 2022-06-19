@@ -24,6 +24,8 @@ To run this simulation, it is necessary to
 
 Now you should see:
 
+https://user-images.githubusercontent.com/24619344/174492219-c2ff8421-0e58-4414-ba3d-484b802f6be6.MP4
+
 I hope that the content is self-explanatory.
 
 Run `docker compose stop` in order to stop the execution of the simulator.
@@ -32,3 +34,6 @@ Run `docker compose stop` in order to stop the execution of the simulator.
 I'm aware that the project could be interesting as an educational simulator, but I's far from perfect. I don't know if I will be able to improve it. Therefore, if you think that this project has potential, please contribute, it could be the opportunity to develop something to show what a blockchain and a cryptocurrency consist of.
 
 I am aware that the project could be interesting as an educational simulator, but it is far from perfect. I don't know if I will be able to improve it. Therefore, if you think this project has potential, please contribute, it could be an opportunity to develop something that shows what a blockchain and cryptocurrency are all about.
+
+
+
