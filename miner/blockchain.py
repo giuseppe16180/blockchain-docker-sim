@@ -2,10 +2,10 @@ import hashlib
 import json
 import random
 import time
+import requests
+
 from urllib.parse import urlparse
 from uuid import uuid4
-
-import requests
 from flask import Flask, jsonify, request
 
 
@@ -49,9 +49,6 @@ class Blockchain:
 
         while current_index < len(chain):
             block = chain[current_index]
-            #print(f'{last_block}')
-            #print(f'{block}')
-            #print("\n-----------\n")
             # Check that the hash of the block is correct
             last_block_hash = self.hash(last_block)
             if block['previous_hash'] != last_block_hash:
@@ -257,28 +254,6 @@ def new_transaction():
     return jsonify(response), 201
 
 
-
-# @app.route('/transaction/broadcast', methods=['POST']) # TODO: verificare che il nodo esista
-# def broadcast_transaction():
-#     values = request.get_json()
-
-#     # Check that the required fields are in the POST'ed data
-#     required = ['sender', 'recipient', 'amount']
-#     if not all(k in values for k in required):
-#         return 'Missing values', 400
-
-#     # Create a new Transaction
-#     index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
-
-#     for node in blockchain.nodes:
-#         response = requests.post(f'http://{node}/transactions/new', json=values)
-    
-#     response = {'message': f'Transaction will be added to Block {index}'}
-#     return jsonify(response), 201
-
-
-
-
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
@@ -308,10 +283,8 @@ def register_nodes():
 
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
-
-
     old_chain_len = len(blockchain.chain)
-    old_chain_hash = blockchain.hash(blockchain.chain[-1]) # TODO: to correct
+    old_chain_hash = blockchain.hash(blockchain.chain[-1]) 
 
     replaced = blockchain.resolve_conflicts()
     was_fork = old_chain_hash != blockchain.hash(blockchain.chain[old_chain_len - 1])

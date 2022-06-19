@@ -1,5 +1,3 @@
-# %%
-
 import hashlib
 import json
 import random
@@ -7,8 +5,8 @@ import time
 import requests
 import os
 
-from itertools import count, repeat
-from typing import Optional, List, Dict, Set
+from itertools import count
+from typing import Optional, List
 from urllib import response
 from uuid import uuid4
 from termcolor import colored, cprint
@@ -58,7 +56,6 @@ class BlockchainSimulator():
             miners_addr = f.read().splitlines()
 
         self.members = {str(uuid4()).replace('-', '') for _ in range(num_members - len(miners_addr))}
-
 
         self.miners = {}
 
